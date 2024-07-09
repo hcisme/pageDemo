@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>可拖拽</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    .box {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: skyblue;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box"></div>
+
+  <script>
+    const box = document.querySelector('.box')
+    let eleLeft;
+    let eleTop;
+    let startX;
+    let startY;
+
+    function handleBoxMove(e) {
+      const disX = e.clientX - startX
+      const disY = e.clientY - startY
+
+      let lastX = eleLeft + disX
+      let lastY = eleTop + disY
+
+      if (lastX <= 0) {
+        lastX = 0
+      } else if (lastX > innerWidth - box.clientWidth) {
+        lastX = innerWidth - box.clientWidth
+      }
+
+      if (lastY <= 0) {
+        lastY = 0
+      } else if (lastY > innerHeight - box.clientHeight) {
+        lastY = innerHeight - box.clientHeight
+      }
+
+      box.style.left = `${lastX}px`
+      box.style.top = `${lastY}px`
+    }
+
+    function handleBoxDown(e) {
+      // 获取元素起始位置
+      eleLeft = box.offsetLeft
+      eleTop = box.offsetTop
+      // 鼠标按下的坐标
+      startX = event.clientX;
+      startY = event.clientY;
+
+      document.addEventListener('mousemove', handleBoxMove)
+    }
+
+    box.addEventListener('mousedown', handleBoxDown)
+
+    box.addEventListener('mouseup', (e) => {
+      document.removeEventListener('mousemove', handleBoxMove)
+    })
+  </script>
+</body>
+
+</html>

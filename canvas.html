@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    html,
+    body {
+      height: 100%;
+      text-align: center;
+    }
+
+    input {
+      margin: 0 24px;
+    }
+
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+
+<body>
+  <input type="color">
+
+  <canvas></canvas>
+
+  <script>
+    const colorPicker = document.querySelector('input[type="color"]')
+    const cvs = document.querySelector('canvas')
+    const ctx = cvs.getContext('2d', {
+      willReadFrequently: true
+    })
+    let colorValues = getRgbaFormHex(colorPicker.value);
+
+    function point2Index(x, y) {
+      return (y * cvs.width + x) * 4
+    }
+
+    function getColors(x, y, imageData) {
+      const i = point2Index(x, y)
+      return [
+        imageData[i],
+        imageData[i + 1],
+        imageData[i + 2],
+        imageData[i + 3]
+      ]
+    }
+
+    function diff(colors1, colors2) {
+      return Math.abs(colors1[0] - colors2[0]) +
+        Math.abs(colors1[1] - colors2[1]) +
+        Math.abs(colors1[2] - colors2[2]) +
+        Math.abs(colors1[3] - colors2[3])
+    }
+
+    function getRgbaFormHex(hexColor) {
+      const r = parseInt(hexColor.slice(1, 3), 16);
+      const g = parseInt(hexColor.slice(3, 5), 16);
+      const b = parseInt(hexColor.slice(5, 7), 16);
+      const a = 255
+      return [r, g, b, a]
+    }
+
+    function handleClickCvs(e) {
+      const x = e.offsetX
+      const y = e.offsetY
+
+      // 取出点击像素点的颜色
+      const imageData = ctx.getImageData(0, 0, cvs.width, cvs.height)
+      const clickColors = getColors(x, y, imageData.data)
+      const _changeColor = (x, y) => {
+        const stack = []
+        stack.push({ x, y })
+        function _is_reasonable(x, y) {
+          if (x < 0 || x >= cvs.width || y < 0 || y >= cvs.height) {
+            return false
+          }
+          const colors = getColors(x, y, imageData.data)
+          if (diff(colors, clickColors) > 100) {
+            return false
+          }
+          if (diff(colors, colorValues) === 0) {
+            return false
+          }
+          return true
+        }
+        while (stack.length > 0) {
+          const { x, y } = stack.pop()
+          const i = point2Index(x, y)
+          imageData.data.set(colorValues, i)
+          if (_is_reasonable(x + 1, y)) {
+            stack.push({ x: x + 1, y })
+          }
+          if (_is_reasonable(x - 1, y)) {
+            stack.push({ x: x - 1, y })
+          }
+          if (_is_reasonable(x, y + 1)) {
+            stack.push({ x, y: y + 1 })
+          }
+          if (_is_reasonable(x, y - 1)) {
+            stack.push({ x, y: y - 1 })
+          }
+        }
+      }
+      _changeColor(x, y)
+      ctx.putImageData(imageData, 0, 0)
+    }
+
+    function init() {
+      const img = new Image()
+      img.src = './img/img.png'
+      img.onload = () => {
+        cvs.width = img.width
+        cvs.height = img.height
+        ctx.drawImage(img, 0, 0)
+      }
+    }
+
+    colorPicker.addEventListener('change', (e) => {
+      const hexColor = e.target.value;
+      colorValues = getRgbaFormHex(hexColor);
+    });
+    cvs.addEventListener('click', handleClickCvs)
+    init()
+  </script>
+</body>
+
+</html>

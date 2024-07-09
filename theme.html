@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主题切换</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root[theme='light'] {
+      --bg-color: #fff;
+      --color: #000;
+    }
+
+    :root[theme='dark'] {
+      --bg-color: #000;
+      --color: #fff;
+    }
+
+    :root {
+      background-color: var(--bg-color);
+      color: var(--color);
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    select {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>主题切换</h1>
+
+  <select id="theme_select">
+    <option value="system">跟随系统</option>
+    <option value="light">浅色</option>
+    <option value="dark">深色</option>
+  </select>
+
+  <script>
+    const THEME_KEY = 'theme';
+    const LIGHT = 'light';
+    const DARK = 'dark';
+    const SYSTEM = 'system';
+
+    const root = document.documentElement;
+    const select = document.querySelector("#theme_select");
+
+    const themeStyles = {
+      [LIGHT]: { '--bg-color': '#fff', '--color': '#000' },
+      [DARK]: { '--bg-color': '#000', '--color': '#fff' },
+    };
+
+    function startTransition(fn, dt = 600) {
+      const transition = document.startViewTransition(fn)
+
+      const radius = Math.sqrt(innerWidth ** 2 + innerHeight ** 2)
+
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0 at ${innerWidth}px ${innerHeight}px)`,
+              `circle(${radius}px at ${innerHeight}px ${innerHeight}px)`,
+            ]
+          },
+          {
+            duration: dt,
+            pseudoElement: '::view-transition-new(root)',
+          }
+        )
+      })
+    }
+
+    function setThemeStyle(theme) {
+      const styles = themeStyles[theme];
+      Object.keys(styles).forEach(key => {
+        root.style.setProperty(key, styles[key]);
+      });
+    }
+
+    function removeThemeStyle() {
+      Object.keys(themeStyles[LIGHT]).forEach(key => {
+        root.style.removeProperty(key);
+      });
+    }
+
+    function onSystemThemeChange() {
+      startTransition(() => {
+        const theme = matchMedia('(prefers-color-scheme: dark)').matches ? DARK : LIGHT;
+        setThemeStyle(theme);
+      })
+    }
+
+    function initializeTheme() {
+      const theme = localStorage.getItem(THEME_KEY) || LIGHT;
+      if (theme === SYSTEM) {
+        onSystemThemeChange();
+        matchMedia('(prefers-color-scheme: light)').addEventListener('change', onSystemThemeChange);
+      }
+      root.setAttribute(THEME_KEY, theme)
+      select.value = theme;
+    }
+
+    function onSelectChange(e) {
+      const theme = e.target.value;
+      localStorage.setItem(THEME_KEY, theme);
+      removeThemeStyle();
+      select.value = theme;
+
+      if (theme === SYSTEM) {
+        root.setAttribute(THEME_KEY, theme)
+        onSystemThemeChange();
+        matchMedia('(prefers-color-scheme: light)').addEventListener('change', onSystemThemeChange);
+      } else {
+        startTransition(() => root.setAttribute(THEME_KEY, theme))
+        matchMedia('(prefers-color-scheme: light)').removeEventListener('change', onSystemThemeChange);
+      }
+    }
+
+    select.addEventListener('change', onSelectChange);
+    initializeTheme();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popover</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    .box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      margin: 8px;
+      background-color: lightblue;
+      cursor: pointer;
+    }
+
+    .popover {
+      display: inline-block;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08),
+        0 3px 6px -4px rgba(0, 0, 0, 0.12),
+        0 9px 28px 8px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box"></div>
+
+  <script>
+    const box = document.querySelector('.box');
+    let popoverDom = null;
+
+    const createPopover = () => {
+      popoverDom = document.createElement('div');
+      popoverDom.classList.add('popover');
+      popoverDom.innerHTML = "<button>点击我</button>";
+      document.body.appendChild(popoverDom);
+      return popoverDom;
+    }
+
+    const positionPopover = (popoverDom, box) => {
+      const { top, left } = box.getBoundingClientRect();
+      const transform = `translate(${left}px, ${top + box.offsetHeight + 8}px)`;
+      popoverDom.style.transform = transform;
+      return transform;
+    }
+
+    const handleMouseOver = () => {
+      if (popoverDom) {
+        return;
+      }
+      popoverDom = createPopover();
+      positionPopover(popoverDom, box);
+    }
+
+    const handleMouseLeave = (e) => {
+      if (popoverDom && !popoverDom.contains(e.relatedTarget)) {
+        popoverDom.remove();
+        popoverDom = null;
+      }
+    }
+
+    box.addEventListener('mouseover', handleMouseOver);
+    box.addEventListener('mouseleave', handleMouseLeave);
+  </script>
+
+</body>
+
+</html>

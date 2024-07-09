@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tooltip</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    .box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      margin: 8px;
+      background-color: lightblue;
+      cursor: pointer;
+    }
+
+    .tooltip {
+      display: inline-block;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08),
+        0 3px 6px -4px rgba(0, 0, 0, 0.12),
+        0 9px 28px 8px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box"></div>
+
+  <script>
+    const box = document.querySelector('.box');
+    let tooltipDom = null;
+
+    const createTooltip = (e) => {
+      tooltipDom = document.createElement('div');
+      tooltipDom.classList.add('tooltip');
+      tooltipDom.innerText = "你好呀！";
+      document.body.appendChild(tooltipDom);
+      return tooltipDom;
+    }
+
+    const setTooltipPosition = (tooltipDom, box) => {
+      const { top, left, bottom, height: boxHeight } = box.getBoundingClientRect();
+      let transform;
+      if (tooltipDom.clientHeight > top) {
+        transform = `translate(${left}px, ${top + boxHeight + 8}px)`;
+      } else {
+        transform = `translate(${left}px, ${top - tooltipDom.clientHeight - 8}px)`;
+      }
+      tooltipDom.style.transform = transform;
+      return transform;
+    }
+
+    const animateTooltip = (tooltipDom, transform, box) => {
+      const { top, left, height: boxHeight } = box.getBoundingClientRect();
+      tooltipDom.animate(
+        [
+          {
+            opacity: 0,
+            transform: `translate(${left}px, ${tooltipDom.clientHeight > top ? top + boxHeight : top - tooltipDom.clientHeight}px)`
+          },
+          {
+            opacity: 1,
+            transform
+          }
+        ],
+        {
+          duration: 200,
+          fill: 'forwards'
+        }
+      );
+    }
+
+    const handleMouseOver = (e) => {
+      if (tooltipDom) {
+        return;
+      }
+      tooltipDom = createTooltip(e);
+      const transform = setTooltipPosition(tooltipDom, box);
+      animateTooltip(tooltipDom, transform, box);
+    }
+
+    const handleMouseLeave = (e) => {
+      if (tooltipDom) {
+        const { top, left, height: boxHeight } = box.getBoundingClientRect();
+        tooltipDom.animate(
+          [
+            {
+              opacity: 1
+            },
+            {
+              opacity: 0,
+              transform: `translate(${left}px, ${tooltipDom.clientHeight > top ? top + boxHeight : top - tooltipDom.clientHeight}px)`
+            }
+          ],
+          {
+            duration: 100,
+            fill: 'forwards'
+          }
+        ).finished.then(() => {
+          tooltipDom.remove();
+          tooltipDom = null;
+        });
+      }
+    }
+
+    box.addEventListener('mouseover', handleMouseOver);
+    box.addEventListener('mouseleave', handleMouseLeave);
+  </script>
+
+</body>
+
+</html>

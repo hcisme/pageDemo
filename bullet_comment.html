@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>弹幕</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    .comment {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid black;
+    }
+
+    .comment .text {
+      position: absolute;
+    }
+
+    .tool {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .tool input {
+      height: 32px;
+    }
+
+    .tool button {
+      width: 40px;
+      height: 32px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="comment"></div>
+  <div class="tool">
+    <input type="text">
+    <button>发送</button>
+
+    <select id="speed">
+      <option value="1.4">速度快</option>
+      <option value="0.8" selected>适中</option>
+      <option value="0.5">速度慢</option>
+    </select>
+  </div>
+
+  <script>
+    const AREA_LINE = 8;
+    const LINE_HEIGHT = 28;
+
+    const commentArea = document.querySelector('.comment');
+    const input = document.querySelector('input');
+    const btn = document.querySelector('button');
+    const speed = document.querySelector('#speed');
+
+    const genRandNumber = (start = 0, end = AREA_LINE) => Math.floor(Math.random() * (end - start + 1)) + start;
+
+    // Initialize a bullet DOM element with the given text
+    const initBulletDom = (text) => {
+      const div = document.createElement('div');
+      div.classList.add('text');
+      div.innerText = text;
+      return div;
+    }
+
+    const moveBullet = (bulletDom, distanceFromLeft, onFinish) => {
+      const speedValue = parseFloat(speed.value);
+      distanceFromLeft -= speedValue;
+      bulletDom.style.transform = `translateX(${distanceFromLeft}px)`;
+
+      if (distanceFromLeft < -bulletDom.clientWidth) {
+        onFinish(bulletDom);
+      } else {
+        requestAnimationFrame(() => moveBullet(bulletDom, distanceFromLeft, onFinish));
+      }
+    }
+
+    const send = (text, onFinish) => {
+      const distanceFromLeft = innerWidth;
+      const top = `${genRandNumber() * LINE_HEIGHT}px`;
+      const bulletDom = initBulletDom(text);
+
+      bulletDom.style.top = top;
+      bulletDom.style.transform = `translateX(${innerWidth}px)`;
+      commentArea.appendChild(bulletDom);
+      
+      moveBullet(bulletDom, distanceFromLeft, onFinish);
+    }
+
+    const init = () => {
+      commentArea.style.height = `${LINE_HEIGHT * AREA_LINE}px`;
+
+      btn.addEventListener('click', () => {
+        if (input.value) {
+          send(input.value, (dom) => {
+            dom.remove();
+          });
+        }
+        input.value = '';
+        input.focus();
+      });
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
