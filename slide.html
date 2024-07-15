@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    button {
+      width: 80px;
+      height: 60px;
+    }
+
+    div {
+      width: 200px;
+      height: 0;
+      overflow: hidden;
+      background-color: skyblue;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <button>Enter</button>
+  <div>
+    Lorem ipsum dolor, sit amet consectetur
+    adipisicing elit.
+    Suscipit incidunt expedita necessitatibus
+    officiis itaque eveniet cum dolorem.
+    Repellat quas officiis autem excepturi
+    commodi assumenda delectus sapiente quod sint!
+    Ipsum, odit.
+  </div>
+
+  <script>
+    const btn = document.querySelector('button')
+    const text = document.querySelector('div')
+
+    btn.onmouseenter = () => {
+      text.style.height = 'auto'
+      text.style.transition = 'all 0.5s'
+      const { height } = text.getBoundingClientRect()
+      text.style.height = '0'
+      requestAnimationFrame(() => { text.style.height = `${height}px` })
+    }
+
+    btn.onmouseleave = () => {
+      text.style.height = 0
+    }
+  </script>
+</body>
+
+</html>
